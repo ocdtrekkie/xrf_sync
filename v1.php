@@ -19,7 +19,7 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 	if ($new_ip_addr != $last_ip_addr && $static == 1) {
 		echo " Static IP change detected on always-on node.";
 		$logipchange = mysqli_prepare($xrf_db, "INSERT INTO g_log (uid, date, event) VALUES (?, NOW(), ?)");
-		$logiptext = $descr . " IP changed from " . $last_ip_addr . " to " . $new_ip_addr . ".";
+		$logiptext = "Sync: Node " . $descr . " IP changed from " . $last_ip_addr . " to " . $new_ip_addr . ".";
 		mysqli_stmt_bind_param($logipchange, "is", $xrf_myid, $logiptext);
 		mysqli_stmt_execute($logipchange) or die(mysqli_error($xrf_db));
 		}

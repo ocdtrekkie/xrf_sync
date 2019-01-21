@@ -14,6 +14,11 @@ $addnode = mysqli_prepare($xrf_db, "INSERT INTO y_nodes (descr, access_key, stat
 mysqli_stmt_bind_param($addnode,"ssi", $descr, $access_key, $static);
 mysqli_stmt_execute($addnode) or die(mysqli_error($xrf_db));
 
+$lognewnode = mysqli_prepare($xrf_db, "INSERT INTO g_log (uid, date, event) VALUES (?, NOW(), ?)");
+$lognewnodetext = "Sync: Node " . $descr . " added.";
+mysqli_stmt_bind_param($lognewnode, "is", $xrf_myid, $lognewnodetext);
+mysqli_stmt_execute($lognewnode) or die(mysqli_error($xrf_db));
+
 echo "<p>Node added. $descr's access key is:</p><p><font size=2>$acc1<br>$acc2</font></p>";
 }
 else

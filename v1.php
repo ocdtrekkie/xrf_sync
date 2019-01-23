@@ -24,8 +24,9 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 		mysqli_stmt_execute($logipchange) or die(mysqli_error($xrf_db));
 		}
 	
-	$updatenode = mysqli_prepare($xrf_db, "UPDATE y_nodes SET last_seen = NOW(), last_ip_addr = ? WHERE access_key = ?");
-	mysqli_stmt_bind_param($updatenode, "ss", $new_ip_addr, $access_key);
+	$updatenode = mysqli_prepare($xrf_db, "UPDATE y_nodes SET last_seen = NOW(), last_ip_addr = ?, user_agent = ? WHERE access_key = ?");
+	$user_agent = mysqli_real_escape_string($xrf_db, $_SERVER['HTTP_USER_AGENT']);
+	mysqli_stmt_bind_param($updatenode, "sss", $new_ip_addr, $user_agent, $access_key);
 	mysqli_stmt_execute($updatenode) or die(mysqli_error($xrf_db));
 }
 else { echo "Access denied."; }

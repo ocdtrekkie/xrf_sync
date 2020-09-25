@@ -40,7 +40,7 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 			mysqli_stmt_bind_result($identifyrecvr, $recvrpool_id);
 			mysqli_stmt_fetch($identifyrecvr);
 			if ($recvrpool_id == $senderpool_id) {
-				$storemessage = mysqli_prepare($xrf_db, "INSERT INTO y_messages (source, dest, sent) VALUES (?, ?, NOW(), ?)");
+				$storemessage = mysqli_prepare($xrf_db, "INSERT INTO y_messages (source, dest, sent, mesg) VALUES (?, ?, NOW(), ?)");
 				mysqli_stmt_bind_param($storemessage, "sss", $descr, $destination, $message);
 				mysqli_stmt_execute($storemessage) or die (mysqli_error($xrf_db));
 				echo "Message queued for delivery.";

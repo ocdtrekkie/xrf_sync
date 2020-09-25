@@ -1,5 +1,6 @@
 <?php
 require_once("includes/global.php");
+$handled = false;
 $access_key=mysqli_real_escape_string($xrf_db, $_GET['access_key']); //00accesskey
 $message_type=mysqli_real_escape_string($xrf_db, $_GET['message_type']); //heartbeat, alert, command, message
 $destination=mysqli_real_escape_string($xrf_db, $_GET['destination']); //server, broadcast, NODE
@@ -13,11 +14,10 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 {
 	mysqli_stmt_bind_result($identifysender, $senderpool_id, $descr, $static, $last_ip_addr);
 	mysqli_stmt_fetch($identifysender);
-	echo "Sender authenticated as $descr. It is a $message_type bound for $destination.";
 	
 	$new_ip_addr = getenv("REMOTE_ADDR");
 	if ($new_ip_addr != $last_ip_addr && $static == 1) {
-		echo " Static IP change detected on always-on node.";
+		// Static IP change detected on always-on node
 		$logipchange = mysqli_prepare($xrf_db, "INSERT INTO g_log (uid, date, event) VALUES (?, NOW(), ?)");
 		$logiptext = "Sync: Node " . $descr . " IP changed from " . $last_ip_addr . " to " . $new_ip_addr . ".";
 		mysqli_stmt_bind_param($logipchange, "is", $xrf_myid, $logiptext);
@@ -28,6 +28,12 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 	$user_agent = mysqli_real_escape_string($xrf_db, $_SERVER['HTTP_USER_AGENT']);
 	mysqli_stmt_bind_param($updatenode, "sss", $new_ip_addr, $user_agent, $access_key);
 	mysqli_stmt_execute($updatenode) or die(mysqli_error($xrf_db));
+	
+	if ($message_type == "heartbeat" && $destination == "server") {
+		// This is a heartbeat, all heartbeats should go to the server
+		http_response_code(200); echo "OK.";
+		$handled = true;
+	}
 	
 	if ($message_type == "message" && $destination != "server" && $destination != "broadcast") {
 		// This is a message to another node
@@ -44,11 +50,16 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 				mysqli_stmt_bind_param($storemessage, "sss", $descr, $destination, $message);
 				mysqli_stmt_execute($storemessage) or die (mysqli_error($xrf_db));
 				echo "Message queued for delivery.";
-			} else { echo "Unauthorized inter-pool communication."; }
-		} else { echo "Unknown destination."; }
+			} else { http_response_code(403); echo "Unauthorized inter-pool communication."; }
+		} else { http_response_code(404); echo "Unknown destination."; }
+		$handled = true;
+	}
+	
+	if ($handled == false) {
+		http_response_code(501); echo "Unknown message path.";
 	}
 }
-else { echo "Access denied."; }
+else { http_response_code(401); echo "Access denied."; }
 
 mysqli_close($xrf_db);
 ?>

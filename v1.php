@@ -49,7 +49,7 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 				$storemessage = mysqli_prepare($xrf_db, "INSERT INTO y_messages (source, dest, sent, mesg) VALUES (?, ?, NOW(), ?)");
 				mysqli_stmt_bind_param($storemessage, "sss", $descr, $destination, $message);
 				mysqli_stmt_execute($storemessage) or die (mysqli_error($xrf_db));
-				echo "Message queued for delivery.";
+				http_response_code(202); echo "Message queued for delivery.";
 			} else { http_response_code(403); echo "Unauthorized inter-pool communication."; }
 		} else { http_response_code(404); echo "Unknown destination."; }
 		$handled = true;

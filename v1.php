@@ -34,6 +34,7 @@ if (mysqli_stmt_num_rows($identifysender) == 1)
 		$getmessagecount = mysqli_prepare($xrf_db, "SELECT id FROM y_messages WHERE dest=? AND recv=0");
 		mysqli_stmt_bind_param($getmessagecount, "s", $descr);
 		mysqli_stmt_execute($getmessagecount) or die(mysqli_error($xrf_db));
+		mysqli_stmt_store_result($getmessagecount);
 		$messageswaiting = mysqli_stmt_num_rows($getmessagecount);
 		http_response_code(200); echo $messageswaiting . " unread message(s).";
 		$handled = true;
